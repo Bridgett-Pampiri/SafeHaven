@@ -53,14 +53,15 @@ export const generateAIResponse = async (
       const errorData = await response.json().catch(() => ({}));
       const apiError = String(errorData.error || errorData.message || "");
       const normalizedError = apiError.toLowerCase();
+      const isUsageLimitError =
+        normalizedError.includes("quota") ||
+        normalizedError.includes("billing") ||
+        normalizedError.includes("generativeai") ||
+        normalizedError.includes("google") ||
+        normalizedError.includes("resource_exhausted") ||
+        normalizedError.includes("too many requests");
 
-      if (
-        response.status === 429 &&
-        (normalizedError.includes("quota") ||
-          normalizedError.includes("billing") ||
-          normalizedError.includes("generativeai") ||
-          normalizedError.includes("google"))
-      ) {
+      if (isUsageLimitError) {
         throw new Error(
           "The AI assistant has reached its usage limit right now. Please try again later."
         );

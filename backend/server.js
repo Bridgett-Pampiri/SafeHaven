@@ -296,6 +296,19 @@ Assistant:
 
   } catch (err) {
     console.error("Gemini error:", err.message || err);
+
+    const normalizedError = String(err.message || err).toLowerCase();
+    if (
+      normalizedError.includes('quota') ||
+      normalizedError.includes('billing') ||
+      normalizedError.includes('resource_exhausted') ||
+      normalizedError.includes('too many requests')
+    ) {
+      return res.status(429).json({
+        error: 'The AI assistant has reached its usage limit right now. Please try again later.'
+      });
+    }
+
     res.status(500).json({ error: err.message || 'Failed to generate response' });
   }
 });
