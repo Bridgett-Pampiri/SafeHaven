@@ -51,7 +51,28 @@ export const generateAIResponse = async (
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(`API error: ${response.status} - ${errorData.error || 'Unknown error'}`);
+      const apiError = String(errorData.error || errorData.message || "");
+      const normalizedError = apiError.toLowerCase();
+
+      if (
+        response.status === 429 &&
+        (normalizedError.includes("quota") ||
+          normalizedError.includes("billing") ||
+          normalizedError.includes("generativeai") ||
+          normalizedError.includes("google"))
+      ) {
+        throw new Error(
+          "The AI assistant has reached its usage limit right now. Please try again later."
+        );
+      }
+
+      if (response.status === 429) {
+        throw new Error(
+          "You have reached your chat limit for now. Please wait a few minutes and try again."
+        );
+      }
+
+      throw new Error(`API error: ${response.status} - ${apiError || "Unknown error"}`);
     }
 
     const data = await response.json();
@@ -68,6 +89,10 @@ export const generateAIResponse = async (
     // Provide user-friendly error messages
     if (error instanceof TypeError && error.message.includes('fetch')) {
       throw new Error("Unable to connect to the server. Please check your internet connection.");
+    }
+
+    if (error instanceof Error) {
+      throw error;
     }
 
     throw new Error("I'm having trouble connecting right now. Please try again in a moment.");

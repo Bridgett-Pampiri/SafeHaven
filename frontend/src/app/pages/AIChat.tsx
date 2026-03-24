@@ -47,11 +47,14 @@ export function AIChat() {
       setMessages((prev) => [...prev, aiResponse]);
     } catch (error) {
       console.error("Error generating AI response:", error);
-      // Fallback response
+      const errorMessage = error instanceof Error
+        ? error.message
+        : "I'm here to listen. Please tell me more about what's on your mind.";
+
       const errorResponse: ChatMessage = {
         id: `assistant_${Date.now()}`,
         role: "assistant",
-        content: "I'm here to listen. Please tell me more about what's on your mind.",
+        content: errorMessage,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         createdAt: Date.now(),
       };
